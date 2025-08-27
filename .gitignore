@@ -54,3 +54,4 @@ TestResult.xml
 nunit-*.xml
 /.vs/name-sorter
 /name-sorter/.vs
+/.vs/ProjectEvaluation
