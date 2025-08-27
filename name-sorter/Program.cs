@@ -11,8 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using System.IO.Pipelines;
-using static System.Net.Mime.MediaTypeNames;
+using NameSorter.Services;
+
 
 internal class Program
 {
@@ -30,7 +30,8 @@ internal class Program
     /// The command-line args to pass to the application.
     /// </param>
     /// ***********************************************************************
-    public static async Task Main(string[] args)
+    public static async Task Main(
+        string[] args)
     {
         // Path where this app is runnning!
         var executablePath = System.AppContext.BaseDirectory;
@@ -96,6 +97,12 @@ internal class Program
     {
         // Create the app/host builder.
         var builder = Host.CreateApplicationBuilder(args);
+
+        // Register applicaton services.
+        builder.Services
+            .AddSingleton<IFileReader, FileReader>()
+            .AddSingleton<IFileWriter, FileWriter>();
+
 
         // Register/configure logging.
         builder.Logging
