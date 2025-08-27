@@ -13,6 +13,13 @@ using System.Text;
 
 public class FileWriter : Service, IFileWriter
 {
+    // Default log messages.
+    internal const string LogBeginWriteFile     = "Writing file '{filePath}'.";
+    internal const string LogEndWriteFile       = "Wrote {lineCount} lines to file '{filePath}'.";
+    internal const string LogErrorWriteFile     = "Could not write file '{filePath}'.  Reason: {reason}.";
+    internal const string LogCancelWriteFile    = "File write was cancelled.";
+
+
     /// ***********************************************************************
     /// <summary>
     /// Default constructor to pass in dependencies.
@@ -45,6 +52,7 @@ public class FileWriter : Service, IFileWriter
         string filePath,
         IEnumerable<string> lines)
     {
+        Logger?.LogExecute();
         return await WriteFileAsync(
             filePath,
             lines,
@@ -82,7 +90,42 @@ public class FileWriter : Service, IFileWriter
         Encoding encoding,
         CancellationToken cancellationToken = default)
     {
-        await Task.Delay(1000, cancellationToken);
-        throw new NotImplementedException();
+        Logger?.LogExecute();
+        try
+        {
+            // Write all text lines to the file.
+            Logger?.LogInformation(LogBeginWriteFile, filePath);
+            await File.WriteAllLinesAsync(
+                filePath,
+                lines,
+                encoding,
+                cancellationToken);
+
+            // Return the file contents if Write successfully, otherwise return 
+            // null results to indication a cancellation was requested.
+            if (cancellationToken.IsCancellationRequested)
+            {
+                Logger?.LogWarning(LogCancelWriteFile);
+                return default;
+            }
+            else
+            {
+                var lineCount = lines.Count();
+                Logger?.LogInformation(LogEndWriteFile, lineCount, filePath);
+                return lineCount;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancellation exception was thrown!
+            Logger?.LogWarning(LogCancelWriteFile);
+            return default;
+        }
+        catch (IOException ex)
+        {
+            // File IO exception was thrown!
+            Logger?.LogError(LogErrorWriteFile, filePath, ex.Message);
+            throw;
+        }
     }
 }

@@ -13,6 +13,13 @@ using System.Text;
 
 public class FileReader : Service, IFileReader
 {
+    // Default log messages.
+    internal const string LogBeginReadFile  = "Reading file '{filePath}'.";
+    internal const string LogEndReadFile    = "Read {lineCount} lines from file '{filePath}'.";
+    internal const string LogErrorReadFile  = "Could not read file '{filePath}'.  Reason: {reason}.";
+    internal const string LogCancelReadFile = "File read was cancelled.";
+
+
     /// ***********************************************************************
     /// <summary>
     /// Default constructor to pass in dependencies.
@@ -40,6 +47,7 @@ public class FileReader : Service, IFileReader
     public async Task<IEnumerable<string>?> ReadFileAsync(
         string filePath)
     {
+        Logger?.LogExecute();
         return await ReadFileAsync(
             filePath,
             Encoding.Default,
@@ -71,7 +79,40 @@ public class FileReader : Service, IFileReader
         Encoding encoding,
         CancellationToken cancellationToken = default)
     {
-        await Task.Delay(1000, cancellationToken);
-        throw new NotImplementedException();
+        Logger?.LogExecute();
+        try
+        {
+            // Read all text lines from the file.
+            Logger?.LogInformation(LogBeginReadFile, filePath);
+            var result = await File.ReadAllLinesAsync(
+                filePath,
+                encoding,
+                cancellationToken);
+
+            // Return the file contents if read successfully, otherwise return 
+            // null results to indication a cancellation was requested.
+            if (cancellationToken.IsCancellationRequested)
+            {
+                Logger?.LogWarning(LogCancelReadFile);
+                return default;
+            }
+            else
+            {
+                Logger?.LogInformation(LogEndReadFile, result.Length, filePath);
+                return result;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancellation exception was thrown!
+            Logger?.LogWarning(LogCancelReadFile);
+            return default;
+        }
+        catch (IOException ex)
+        {
+            // File IO exception was thrown!
+            Logger?.LogError(LogErrorReadFile, filePath, ex.Message);
+            throw;
+        }
     }
 }
