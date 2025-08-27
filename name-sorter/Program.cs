@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using NameSorter.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 internal class Program
@@ -63,7 +64,6 @@ internal class Program
                 });
 
             // Execute the app (read input file, sort names, and write output file).
-            // TODO: Add app logic/execution here!
             try
             {
                 // Get input and out file path's.
@@ -73,11 +73,38 @@ internal class Program
                     : DefaultOutputFileName);
 
                 // Get/run the app.
-                // TODO: Add app logic/exection here!
+                var sortedNames = await host
+                    .Services
+                    .GetRequiredService<IApplication>()
+                    .SortNamesAsync(inputFilePath, outputFilePath);
+
+                // NOTE: Flushing console streams to avoid stream issues with
+                // the default console logger used!
+                var loggerPrioviders = host.Services.GetServices<ILoggerProvider>();
+                if (loggerPrioviders.Any(provider => provider.GetType().Name.Contains("Console", StringComparison.OrdinalIgnoreCase)))
+                {
+                    Console.Out.Flush();
+                    Console.Error.Flush();
+                }
+
+                // Now optionally output the results.
+                if (sortedNames?.Any() ?? false)
+                {
+                    foreach (var name in sortedNames)
+                    {
+                        Console.WriteLine(name);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No names found.");
+                }
             }
             catch (Exception ex)
             {
-                // TODO: Handle exceptions here!
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.ResetColor();
             }
         }
     }
@@ -101,7 +128,10 @@ internal class Program
         // Register applicaton services.
         builder.Services
             .AddSingleton<IFileReader, FileReader>()
-            .AddSingleton<IFileWriter, FileWriter>();
+            .AddSingleton<IFileWriter, FileWriter>()
+            .AddSingleton<INameSorter, NameSorter>()
+            .AddSingleton<INameValidator, NameValidator>()
+            .AddSingleton<IApplication, Application>();
 
 
         // Register/configure logging.

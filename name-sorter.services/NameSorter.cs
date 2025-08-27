@@ -91,8 +91,8 @@ public class NameSorter : Service, INameSorter
                     ? new Name
                     {
                         FullName = name,
-                        FirstName = words.Length > 1 ? string.Join(Separator, words.Take(words.Length - 1)) : words[0],
-                        Surname = words.Length > 1 ? words.Last() : string.Empty,
+                        FirstName = (words.Length > 1 ? string.Join(Separator, words.Take(words.Length - 1)) : words[0]).Trim(),
+                        Surname = (words.Length > 1 ? words.Last() : string.Empty).Trim(),
                         ErrorMessage = string.Empty
                     }
 

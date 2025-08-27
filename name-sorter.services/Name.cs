@@ -24,8 +24,9 @@ public class Name
     /// ***********************************************************************
     public override string ToString()
     {
+        var fullName = !string.IsNullOrEmpty(FullName) ? FullName : "** No Name **";
         return string.IsNullOrEmpty(ErrorMessage)
-            ? FullName
-            : $"{ErrorMessage} ({FullName})";
+            ? fullName
+            : $"{ErrorMessage} ({fullName})";
     }
 }
