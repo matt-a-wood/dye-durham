@@ -65,11 +65,11 @@ internal class Program
             // TODO: Add app logic/execution here!
             try
             {
-                // Get input and output file names.
-                var inputFileName = args[0];
-                var outputFileName = (args.Length == 2)
-                    ? args[1]
-                    : Path.Combine(Path.GetDirectoryName(executablePath)!, DefaultOutputFileName);
+                // Get input and out file path's.
+                var inputFilePath = GetFilePath(args[0]);
+                var outputFilePath = GetFilePath((args.Length == 2) 
+                    ? args[1] 
+                    : DefaultOutputFileName);
 
                 // Get/run the app.
                 // TODO: Add app logic/exection here!
@@ -113,5 +113,30 @@ internal class Program
 
         // Build and return the host.
         return builder.Build();
+    }
+
+
+    /// ***********************************************************************
+    /// <summary>
+    /// Gets the specified file-path as a full-file-path, relative to the
+    /// app execution path, if it doesn't contain an existing path.
+    /// </summary>
+    /// 
+    /// <param name="filePath">
+    /// The file-path to use/check for existing full path (or prefix with
+    /// execution path).
+    /// </param>
+    /// ***********************************************************************
+    private static string GetFilePath(
+        string filePath)
+    {
+        // Path where this app is runnning!
+        var executablePath = System.AppContext.BaseDirectory;
+
+        if (string.IsNullOrEmpty(Path.GetDirectoryName(filePath)))
+        {
+            filePath = Path.Combine(executablePath!, filePath);
+        }
+        return filePath;
     }
 }
