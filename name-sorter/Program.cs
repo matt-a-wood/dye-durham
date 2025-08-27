@@ -12,7 +12,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using NameSorter.Services;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 internal class Program
@@ -102,6 +101,7 @@ internal class Program
             }
             catch (Exception ex)
             {
+                // Handle application exceptions!
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Error: {ex.Message}");
                 Console.ResetColor();
